@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Hello World!</title>
+    <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline';" />
+    <style>
+      body{
+        background-color:#252927;
+        color:#ffffff;
+      }
+      table th{
+        background-color:#353937;
+      }
+      table th.caption{
+        background-color:#3B413F;
+      }
+      table td.config{
+        background-color:#3B413F;
+        width:200px;
+        height:80px;
+      }
+      td.config button{
+        width:100%;
+        height:100%;
+        background-color:#3B413F;
+        border:none;
+        color:#ffffff;
+      }
+    </style>
+</head>
+<body>
+    <h1>Hello World!</h1>
+
+    <div>
+      <label for="GoXlrPluginExecutable">GoXLR plugin executable:</label>
+      <input name="GoXlrPluginExecutable" />
+      <button id="GoXlrPluginExecutableButton" type="button">Select</button>
+    </div>
+
+    <div>
+      <label for="GoXlrExecutable">GoXLR executable:</label>
+      <input name="GoXlrExecutable" />
+      <button id="GoXlrExecutableButton" type="button">Select</button>
+    </div>
+
+
+
+
+    <table id="routingTable">
+    </table>
+
+    <script src="./frontend.js"></script>
+</body>
+</html>
