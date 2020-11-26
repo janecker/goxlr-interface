@@ -1,5 +1,5 @@
-GoXLR Websocket Interface
-=========================
+GoXLR Interface
+===============
 
 This tool allows you to add hotkeys to change the routing table of your GoXLR. It uses the existing websocket interface created by the Elgato Streamdeck plugin. In future it is planned to react to OBS scene change events, such that the routing table can be changed based on the currently selected scene.
 
@@ -9,7 +9,7 @@ This project is in a very early stage of development. Use at own risk.
 
 License
 -------
-This project is licensed under [MIT](https://opensource.org/licenses/MIT) license.
+This project is licensed under the [MIT](https://opensource.org/licenses/MIT) license.
 
 
 Attribution

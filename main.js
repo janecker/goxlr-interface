@@ -102,6 +102,50 @@ function registerHotkeys(){
   console.log(globalShortcut.isRegistered('Shift+F2'))
 }
 
+
+var obsClient;
+
+function obsSceneChange(name){
+  let routingTable = store.get('GoXlrRouting');
+  for(const input in routingTable){
+    for(const output in routingTable[input]){
+      for(const action in routingTable[input][output]){
+        let scenes = routingTable[input][output][action]["scenes"];
+        if(scenes !== undefined){
+          for(let i in scenes){
+            if(scenes[i] == name){
+              let wsAction = actionTranslation[action];
+              var json = {"action":"com.tchelicon.goxlr.routingtable","context":"","device":"","event":"keyUp","payload":{"coordinates":{"column":0,"row":0},"isInMultiAction":false,"settings":{"RoutingAction":wsAction, "RoutingInput":input, "RoutingOutput":output}}};
+              _socket.send(JSON.stringify(json));
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+function connectToObs(){
+  let address = store.get('ObsWsAddress');
+  let port = store.get('ObsWsPort');
+
+  obsClient = new WebSocket('ws://'+address+':'+port);
+  obsClient.on('open', function open(){
+    console.log("OBS connected");
+  });
+  obsClient.on('message', function incoming(data){
+    let json = JSON.parse(data);
+    switch(json['update-type']){
+      case 'SwitchScenes':
+        obsSceneChange(json['scene-name']);
+        break;
+    }
+    //console.log(data);
+  });
+
+}
+
+
 function createWindow (){
 
   // Create main application window
@@ -121,7 +165,7 @@ function createWindow (){
   win.addListener('minimize', function(event) {
     event.preventDefault();
     win.hide();
-
+    win.send('close');
   });
   win.setMenu(null);
   win.loadFile('index.html');
@@ -219,12 +263,34 @@ function createWindow (){
   });
 
   ipcMain.on('routing-save', function(event, data){
-    store.set('GoXlrRouting.'+data.input+'.'+data.output, data.data);
+    //TBD: change this, dirty stub
+    if(data.data.turnOn.hotkey !== undefined){
+      store.set('GoXlrRouting.'+data.input+'.'+data.output+'.turnOn.hotkey', data.data.turnOn.hotkey);
+    }
+    if(data.data.turnOff.hotkey !== undefined){
+      store.set('GoXlrRouting.'+data.input+'.'+data.output+'.turnOff.hotkey', data.data.turnOff.hotkey);
+    }
+    if(data.data.toggle.hotkey !== undefined){
+      store.set('GoXlrRouting.'+data.input+'.'+data.output+'.toggle.hotkey', data.data.toggle.hotkey);
+    }
     win.send('routing-save');
     registerHotkeys();
   });
+  ipcMain.on('config-save', function(event, data){
+    store.set('GoXlrPluginExecutable', data.goXlrPluginExecutable);
+    store.set('GoXlrExecutable', data.goXlrExecutable);
+    store.set('GoXlrAutoRestart', data.goXlrAutoRestart);
+    store.set('ObsWsAddress', data.obsWsAddress);
+    store.set('ObsWsPort', data.obsWsPort);
+  });
 
-  //restartGoXLR();
+  if(store.get('GoXlrAutoRestart') === true){
+    restartGoXLR();
+  }
+
+  connectToObs();
+
+
 
 /*
   (async () => {

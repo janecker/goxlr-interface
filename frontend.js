@@ -37,7 +37,16 @@ th.colSpan=8;
 th.classList.add("caption");
 row.appendChild(th);
 
-
+ipcRenderer.on('close', function(event, param) {
+  let data = {
+    goXlrPluginExecutable: document.querySelector(`input[name="GoXlrPluginExecutable"]`).value,
+    goXlrExecutable: document.querySelector(`input[name="GoXlrExecutable"]`).value,
+    goXlrAutoRestart: document.querySelector(`input[name="GoXlrAutoRestart"]`).checked,
+    obsWsAddress: document.querySelector(`input[name="ObsWsAddress"]`).value,
+    obsWsPort: document.querySelector(`input[name="ObsWsPort"]`).value,
+  }
+  ipcRenderer.send('config-save', data);
+});
 
 function updateButtonLabels(){
   (async() => {
@@ -117,6 +126,9 @@ createRoutingTable();
 (async() => {
   document.querySelector(`input[name="GoXlrPluginExecutable"]`).value = await ipcRenderer.invoke('getStoreValue', 'GoXlrPluginExecutable');
   document.querySelector(`input[name="GoXlrExecutable"]`).value = await ipcRenderer.invoke('getStoreValue', 'GoXlrExecutable');
+  document.querySelector(`input[name="GoXlrAutoRestart"]`).checked = await ipcRenderer.invoke('getStoreValue', 'GoXlrAutoRestart');
+  document.querySelector(`input[name="ObsWsAddress"]`).value = await ipcRenderer.invoke('getStoreValue', 'ObsWsAddress');
+  document.querySelector(`input[name="ObsWsPort"]`).value = await ipcRenderer.invoke('getStoreValue', 'ObsWsPort');
   /*
   let routingTable = await ipcRenderer.invoke('getStoreValue', 'GoXlrRouting');
 
