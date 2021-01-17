@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Hello World!</title>
+    <title>GoXLR Interface</title>
     <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline';" />
     <style>
       body{
@@ -27,40 +27,62 @@
         border:none;
         color:#ffffff;
       }
+      label{
+        display:block;
+        margin-top:20px;
+      }
+      #SettingsSave{
+        margin-top:20px;
+      }
+      #config-left{
+        float:left;
+        width:400px;
+      }
+      #config-right{
+        float:right;
+        width:800px;
+      }
+      #routingTable{
+        clear:both;
+        padding-top:40px;
+      }
     </style>
 </head>
 <body>
-    <h1>Hello World!</h1>
+    <h1>Settings</h1>
+    <div id="config-left">
+      <div>
+        <label for="GoXlrPluginExecutable">GoXLR plugin executable:</label>
+        <input name="GoXlrPluginExecutable" />
+        <button id="GoXlrPluginExecutableButton" type="button">Select</button>
+      </div>
 
-    <div>
-      <label for="GoXlrPluginExecutable">GoXLR plugin executable:</label>
-      <input name="GoXlrPluginExecutable" />
-      <button id="GoXlrPluginExecutableButton" type="button">Select</button>
+      <div>
+        <label for="GoXlrExecutable">GoXLR executable:</label>
+        <input name="GoXlrExecutable" />
+        <button id="GoXlrExecutableButton" type="button">Select</button>
+      </div>
+
+      <div>
+        <label for="GoXlrExecutable">Auto restart GoXLR:</label>
+        <input type="checkbox" name="GoXlrAutoRestart" />
+      </div>
     </div>
 
-    <div>
-      <label for="GoXlrExecutable">GoXLR executable:</label>
-      <input name="GoXlrExecutable" />
-      <button id="GoXlrExecutableButton" type="button">Select</button>
+    <div id="config-right">
+      <div>
+        <label for="ObsWsAddress">OBS Websocket address:</label>
+        <input name="ObsWsAddress" />
+      </div>
+
+      <div>
+        <label for="ObsWsPort">OBS Websocket Port:</label>
+        <input name="ObsWsPort" />
+      </div>
+      <div>
+        <button id="SettingsSave" type="button">Save</button>
+      </div>
     </div>
-
-    <div>
-      <label for="GoXlrExecutable">Auto restart GoXLR</label>
-      <input type="checkbox" name="GoXlrAutoRestart" />
-    </div>
-
-    <div>
-      <label for="ObsWsAddress">OBS Websocket address:</label>
-      <input name="ObsWsAddress" />
-    </div>
-
-    <div>
-      <label for="ObsWsPort">OBS Websocket Port:</label>
-      <input name="ObsWsPort" />
-    </div>
-
-
-
 
     <table id="routingTable">
     </table>

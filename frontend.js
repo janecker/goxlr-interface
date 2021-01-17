@@ -17,6 +17,16 @@ ipcRenderer.on('GoXlrPluginExecutableButton-selected', function(event, response)
 ipcRenderer.on('GoXlrExecutableButton-selected', function(event, response) {
   document.querySelector(`input[name="GoXlrExecutable"]`).value = response.filePaths[0];
 });
+document.getElementById('SettingsSave').addEventListener('click', () => {
+  let data = {
+    goXlrPluginExecutable: document.querySelector(`input[name="GoXlrPluginExecutable"]`).value,
+    goXlrExecutable: document.querySelector(`input[name="GoXlrExecutable"]`).value,
+    goXlrAutoRestart: document.querySelector(`input[name="GoXlrAutoRestart"]`).checked,
+    obsWsAddress: document.querySelector(`input[name="ObsWsAddress"]`).value,
+    obsWsPort: document.querySelector(`input[name="ObsWsPort"]`).value,
+  }
+  ipcRenderer.send('config-save', data);
+});
 
 ipcRenderer.on('routing-save', function(event){
   updateButtonLabels();
@@ -57,7 +67,7 @@ function updateButtonLabels(){
         let nHotkeys = 0;
         let nEvents = 0;
         for(const action in routingTable[input][output]){
-          if(routingTable[input][output][action]['hotkey'] !== undefined){
+          if(routingTable[input][output][action]['hotkey'] !== undefined && routingTable[input][output][action]['hotkey'] !== ''){
               nHotkeys++;
           }
         }

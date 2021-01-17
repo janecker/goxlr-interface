@@ -8,6 +8,7 @@ const taskkill = require('taskkill');
 var freePort = require("find-free-port");
 const Store = require('electron-store');
 const WebSocket = require('ws');
+var obsConnected = false;
 
 const store = new Store();
 
@@ -60,8 +61,6 @@ function registerHotkeys(){
       for(const action in routingConfig[input][output]){
         let hotkey = routingConfig[input][output][action]['hotkey'];
         if(hotkey !== undefined && hotkey != ''){
-          console.log(input+ " " + output + " " + action);
-          console.log(hotkey);
           const ret = globalShortcut.register(hotkey, () => {
             let wsAction = actionTranslation[action];
 
@@ -91,7 +90,7 @@ function registerHotkeys(){
             state = true;
           });
           if (!ret) {
-            console.log('registration failed')
+            console.error('hotkey registration failed for ' + hotkey);
           }
         }
       }
@@ -99,7 +98,7 @@ function registerHotkeys(){
   }
 
   // Check whether a shortcut is registered.
-  console.log(globalShortcut.isRegistered('Shift+F2'))
+  //console.log(globalShortcut.isRegistered('Shift+F2'))
 }
 
 
@@ -128,21 +127,34 @@ function obsSceneChange(name){
 function connectToObs(){
   let address = store.get('ObsWsAddress');
   let port = store.get('ObsWsPort');
-
-  obsClient = new WebSocket('ws://'+address+':'+port);
-  obsClient.on('open', function open(){
-    console.log("OBS connected");
-  });
-  obsClient.on('message', function incoming(data){
-    let json = JSON.parse(data);
-    switch(json['update-type']){
-      case 'SwitchScenes':
-        obsSceneChange(json['scene-name']);
-        break;
-    }
-    //console.log(data);
-  });
-
+  if(!obsConnected){
+    obsClient = new WebSocket('ws://'+address+':'+port);
+    obsClient.on('open', function open(){
+      console.log("OBS connected");
+      obsConnected = true;
+    });
+    obsClient.on('close', function open(){
+      if(obsConnected == true){
+        console.log("OBS connection lost");
+      }
+      obsConnected = false;
+    });
+    obsClient.on('error', function(ex){
+      if(ex.code != "ECONNREFUSED"){
+        console.log("handled error");
+        console.log(ex);
+      }
+    });
+    obsClient.on('message', function incoming(data){
+      let json = JSON.parse(data);
+      switch(json['update-type']){
+        case 'SwitchScenes':
+          obsSceneChange(json['scene-name']);
+          break;
+      }
+      //console.log(data);
+    });
+  }
 }
 
 
@@ -151,7 +163,7 @@ function createWindow (){
   // Create main application window
   const win = new BrowserWindow({
     width: 1500,
-    height: 600,
+    height: 850,
     //resizable: false,
     //show: false,
     icon: path.join(__dirname, '/icon.png'),
@@ -167,9 +179,14 @@ function createWindow (){
     win.hide();
     win.send('close');
   });
+  win.addListener('close', function(event) {
+    event.preventDefault();
+    win.hide();
+    win.send('close');
+  });
   win.setMenu(null);
   win.loadFile('index.html');
-  win.openDevTools();
+  //win.openDevTools();
 
 
   // Create routing config window
@@ -197,7 +214,7 @@ function createWindow (){
   });
   routingConfigWin.setMenu(null);
   routingConfigWin.loadFile('routingConfig.html');
-  routingConfigWin.openDevTools();
+  //routingConfigWin.openDevTools();
 
 
   // Create system icon and context menu
@@ -210,7 +227,9 @@ function createWindow (){
   const menu = Menu.buildFromTemplate([
     {
       label: 'Quit',
-      click() { app.quit(); }
+      click() {
+        app.exit(0);
+      }
     },
     {
       label: 'Settings',
@@ -264,17 +283,21 @@ function createWindow (){
 
   ipcMain.on('routing-save', function(event, data){
     //TBD: change this, dirty stub
-    if(data.data.turnOn.hotkey !== undefined){
-      store.set('GoXlrRouting.'+data.input+'.'+data.output+'.turnOn.hotkey', data.data.turnOn.hotkey);
+    if(data.input !== undefined && data.output !== undefined){
+      if(data.data.turnOn.hotkey !== undefined){
+        store.set('GoXlrRouting.'+data.input+'.'+data.output+'.turnOn.hotkey', data.data.turnOn.hotkey);
+      }
+      if(data.data.turnOff.hotkey !== undefined){
+        store.set('GoXlrRouting.'+data.input+'.'+data.output+'.turnOff.hotkey', data.data.turnOff.hotkey);
+      }
+      if(data.data.toggle.hotkey !== undefined){
+        store.set('GoXlrRouting.'+data.input+'.'+data.output+'.toggle.hotkey', data.data.toggle.hotkey);
+      }
+      win.send('routing-save');
+      registerHotkeys();
+    }else{
+      console.error("Undefined routing save");
     }
-    if(data.data.turnOff.hotkey !== undefined){
-      store.set('GoXlrRouting.'+data.input+'.'+data.output+'.turnOff.hotkey', data.data.turnOff.hotkey);
-    }
-    if(data.data.toggle.hotkey !== undefined){
-      store.set('GoXlrRouting.'+data.input+'.'+data.output+'.toggle.hotkey', data.data.toggle.hotkey);
-    }
-    win.send('routing-save');
-    registerHotkeys();
   });
   ipcMain.on('config-save', function(event, data){
     store.set('GoXlrPluginExecutable', data.goXlrPluginExecutable);
@@ -289,6 +312,9 @@ function createWindow (){
   }
 
   connectToObs();
+  setInterval(function() {
+    connectToObs();
+  }, 10 * 1000);
 
 
 
@@ -355,12 +381,6 @@ app.whenReady().then(() => {
 
   registerHotkeys();
 });
-
-app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') {
-    app.quit()
-  }
-})
 
 app.on('activate', () => {
   if (BrowserWindow.getAllWindows().length === 0) {
