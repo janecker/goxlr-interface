@@ -1,4 +1,5 @@
 const path = require('path');
+const fs = require('fs');
 const { spawn } = require('cross-spawn');
 var spawn_os = require("child_process").spawn,child;
 var exec = require('child_process').exec;
@@ -25,6 +26,7 @@ const {
 var routingStates = {};
 
 var state = false;
+var _socket = null;
 
 function startWebsocket(port){
   var server = new WebSocket.Server({port: port});
@@ -44,7 +46,12 @@ function startWebsocket(port){
   let pluginExecutable = store.get('GoXlrPluginExecutable');
   let pluginExecutableFile = path.basename(pluginExecutable);
   let pluginexecutablePath = path.dirname(pluginExecutable);
-  const plugin = spawn(pluginExecutableFile, registrationParams, { cwd: pluginexecutablePath, stdio: 'inherit' });
+
+  if(fs.existsSync(pluginExecutable)){
+    const plugin = spawn(pluginExecutableFile, registrationParams, { cwd: pluginexecutablePath, stdio: 'inherit' });
+  }else{
+    console.log("Plugin executable not found!");
+  }
 }
 
 let actionTranslation = {
@@ -62,32 +69,36 @@ function registerHotkeys(){
         let hotkey = routingConfig[input][output][action]['hotkey'];
         if(hotkey !== undefined && hotkey != ''){
           const ret = globalShortcut.register(hotkey, () => {
-            let wsAction = actionTranslation[action];
+            if(_socket !== null){
+              let wsAction = actionTranslation[action];
 
-            if(action == 'toggle'){
-              if(routingStates[input] === undefined){
-                  routingStates[input] = {};
+              if(action == 'toggle'){
+                if(routingStates[input] === undefined){
+                    routingStates[input] = {};
+                }
+                if(routingStates[input][output] === undefined){
+                  routingStates[input][output] = "turnOn";
+                }
+                if(routingStates[input][output] == "turnOn"){
+                  routingStates[input][output] = "turnOff";
+                }else{
+                  routingStates[input][output] = "turnOn";
+                }
+                wsAction = actionTranslation[routingStates[input][output]];
               }
-              if(routingStates[input][output] === undefined){
-                routingStates[input][output] = "turnOn";
-              }
-              if(routingStates[input][output] == "turnOn"){
-                routingStates[input][output] = "turnOff";
-              }else{
-                routingStates[input][output] = "turnOn";
-              }
-              wsAction = actionTranslation[routingStates[input][output]];
-            }
 
-            var json = {"action":"com.tchelicon.goxlr.routingtable","context":"","device":"","event":"keyUp","payload":{"coordinates":{"column":0,"row":0},"isInMultiAction":false,"settings":{"RoutingAction":wsAction, "RoutingInput":input, "RoutingOutput":output}}};
-            _socket.send(JSON.stringify(json));
-            if(wsAction == "Turn On"){
-              sound.play(path.join(__dirname, '/static/sound/enabled.mp3'));
+              var json = {"action":"com.tchelicon.goxlr.routingtable","context":"","device":"","event":"keyUp","payload":{"coordinates":{"column":0,"row":0},"isInMultiAction":false,"settings":{"RoutingAction":wsAction, "RoutingInput":input, "RoutingOutput":output}}};
+              _socket.send(JSON.stringify(json));
+              if(wsAction == "Turn On"){
+                sound.play(path.join(__dirname, '/static/sound/enabled.mp3'));
+              }
+              if(wsAction == "Turn Off"){
+                sound.play(path.join(__dirname, '/static/sound/disabled.mp3'));
+              }
+              state = true;
+            }else{
+              console.log("Can't execute action, GoXLR plugin not connected!");
             }
-            if(wsAction == "Turn Off"){
-              sound.play(path.join(__dirname, '/static/sound/disabled.mp3'));
-            }
-            state = true;
           });
           if (!ret) {
             console.error('hotkey registration failed for ' + hotkey);
@@ -373,7 +384,7 @@ app.whenReady().then(() => {
   createWindow();
 
   // Identify random free port used for the GoXLR plugin communication and start websocket server
-  freePort(3000, function(err, port){
+  freePort(3001, function(err, port){
     if(!err){
       startWebsocket(port);
     }
