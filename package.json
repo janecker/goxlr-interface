@@ -20,7 +20,7 @@
     "ws": "^6.1.2"
   },
   "devDependencies": {
-    "electron": "^11.0.2",
+    "electron": "^31.2.1",
     "electron-packager": "^15.2.0"
   }
 }

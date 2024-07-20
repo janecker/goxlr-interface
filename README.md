@@ -20,10 +20,10 @@ The original GoXLR application provides an plug-in that is intended to connect a
 The GoXLR Interface is developed using Node. [Download](https://nodejs.org/en/download/) and install node on your system.
 
 ##### Step 2 - Extract the GoXLR plug-in:
-Locate your GoXLR installation (default: C:\Program Files (x86)\TC-Helicon\GoXLR), and find the file "com.tchelicon.goxlr.streamDeckplug-in". Unzip this file (e.g. by just renaming it to .zip) and you should fine the executable named "GoXLRStreamDeckplug-in.exe".
+Locate your GoXLR installation (default: C:\Program Files (x86)\TC-Helicon\GoXLR), and find the file "com.tchelicon.goxlr.streamDeckplug-in". Unzip this file (e.g. by just renaming it to .zip) and you should find the executable named "GoXLRStreamDeckplug-in.exe".
 
 ##### Step 3 - Run and Configure GoXLR Interface:
-Open a command prompt and navigate to the GoXLR Interface directory. Run the application by executing "npm run start". In the application you now need to now specify the location of the GoXLR plug-in executable that you extracted in step 2. Also configure the location of the GoXLR executable. It is also recommended to check the "Auto restart GoXLR" check box. This will cause a restart of your GoXLR application whenever you open the GoXLR Interface app. This is actually required to allow the Stream Deck plug-in to connect to the GoXLR application. If you do not check the check box you have to restart the GoXLR app yourself.
+Clone this project to your machine, open a command prompt and navigate to the GoXLR Interface directory. Install the dependencies by running "npm install". Run the application by executing "npm run start". In the application you now need to now specify the location of the GoXLR plug-in executable that you extracted in step 2. Also configure the location of the GoXLR executable. It is also recommended to check the "Auto restart GoXLR" check box. This will cause a restart of your GoXLR application whenever you open the GoXLR Interface app. This is actually required to allow the Stream Deck plug-in to connect to the GoXLR application. If you do not check the check box you have to restart the GoXLR app yourself.
 
 ##### Step 4 - Configure Hotkeys:
 Open the GoXLR Interface application, select a routing point by clicking in the table. Type the keycode in the event you want to trigger. For reference check the [acellerator docs](https://www.electronjs.org/docs/api/accelerator). Examples are:
